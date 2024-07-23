@@ -1,36 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>Login - Expense Tracker</title>
-     <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <meta name="description" content="Login - Register Template">
+    <meta name="author" content="Lorenzo Angelino aka MrLolok">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./main.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F2F2F2;
+        }
+    </style>
 </head>
 
 <body>
-     <header>
-          <h1>Login</h1>
-     </header>
-     <main>
-          <form action="login" method="post">
-               <label for="username">Username:</label>
-               <input type="text" id="username" name="username" required>
-               <label for="password">Password:</label>
-               <input type="password" id="password" name="password" required>
-               <button type="submit">Login</button>
-          </form>
-     </main>
-     <footer>
-          <div class="brand-link">
-               <a href="./index.html">Patrick Alunya</a>
-          </div>
-          <div class="footer-content">
-               <p>Developed By <a href="./index.html">Patrick Alunya</a> | Copyright &copy; <span id="currentYear"></span>
-                    | All Rights Reserved.</p>
-          </div>
-     </footer>
-     <script language="JavaScript" type="text/javascript" src="./current-year.js"></script>
+    <div id="container-login">
+        <div id="title">
+            <i class="material-icons lock">lock</i> Login
+        </div>
+
+        <form id="form">
+            <div class="input">
+                <div class="input-addon">
+                    <i class="material-icons">face</i>
+                </div>
+                <input id="email" placeholder="Email" type="text" required class="validate" autocomplete="off">
+            </div>
+
+            <div class="clearfix"></div>
+
+            <div class="input">
+                <div class="input-addon">
+                    <i class="material-icons">vpn_key</i>
+                </div>
+                <input id="password" placeholder="Password" type="password" required class="validate" autocomplete="off">
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox">
+                <span style="color: #757575">Remember Me</span>
+            </div>
+
+            <input type="submit" value="Log In" />
+            <p id="auth-msg"></p>
+        </form>
+
+        <div class="forgot-password">
+            <a href="#">Forgot your password?</a>
+        </div>
+        <div class="privacy">
+            <a href="#">Privacy Policy</a>
+        </div>
+
+        <div class="register">
+            <span style="color: #657575">Don't have an account yet?</span>
+            <a href="./register.html"><button id="register-link">Register here</button></a>
+        </div>
+    </div>
+
+    <!-- script file -->
+    <script src="./login.js"></script>
 </body>
 
 </html>
