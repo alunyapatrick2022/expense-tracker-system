@@ -1,7 +1,9 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <meta name="description" content="Login - Register Template">
     <meta name="author" content="Lorenzo Angelino aka MrLolok">
@@ -21,18 +23,12 @@
             <i class="material-icons lock">lock</i> Register
         </div>
 
-        <form id="register-form">
-            <div class="input">
-                <div class="input-addon">
-                    <i class="material-icons">face</i>
-                </div>
-                <input id="full_name" placeholder="Full names" type="text" required class="validate" autocomplete="off">
-            </div>
+        <form id="form">
             <div class="input">
                 <div class="input-addon">
                     <i class="material-icons">email</i>
                 </div>
-                <input id="email" placeholder="Email" type="email" required class="validate" autocomplete="off">
+                <input id="email" placeholder="Email" type="email" required class="validate" autocomplete="on">
             </div>
 
             <div class="clearfix"></div>
@@ -41,7 +37,7 @@
                 <div class="input-addon">
                     <i class="material-icons">face</i>
                 </div>
-                <input id="username" placeholder="Username" type="text" required class="validate" autocomplete="off">
+                <input id="username" placeholder="Username" type="text" required class="validate" autocomplete="on">
             </div>
 
             <div class="clearfix"></div>
@@ -50,11 +46,11 @@
                 <div class="input-addon">
                     <i class="material-icons">vpn_key</i>
                 </div>
-                <input id="password" placeholder="Password" type="password" required class="validate" autocomplete="off">
+                <input id="password" placeholder="Password" type="password" name="password" required class="validate" autocomplete="on">
             </div>
 
             <div class="remember-me">
-                <input type="checkbox">
+                <input type="checkbox" name="checkbox" required>
                 <span style="color: #757575">I accept Terms of Service</span>
             </div>
 

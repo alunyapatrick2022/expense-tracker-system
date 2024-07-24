@@ -1,146 +1,82 @@
-// server.js
 const express = require('express');
-const session = require('express-session');
-const bcrypt = require('bcrypt');
-const bodyParser = require('body-parser');
-const mysql = require('mysql2');
-const { check, validationResult } = require('express-validator');
 const app = express();
+const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const path = require('path');
 
-// Configure session middleware
-app.use(session({
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: true
-}));
-
-// Create MySQL connection
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'learning_management'
-});
-
-// Connect to MySQL
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL: ' + err.stack);
-        return;
-    }
-    console.log('Connected to MySQL as id ' + connection.threadId);
-});
-
-// Set up middleware to parse incoming data
 app.use(express.json());
-app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+dotenv.config();
 
-// Define routes
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+//connection to the db
+const db = mysql.createConnection({
+     host: process.env.DB_HOST,
+     user: process.env.DB_USER,
+     password: process.env.DB_PASSWORD,
+     database: process.env.DB_NAME
 });
 
+//check if connection works
+db.connect((err) => {
+     if (err) return console.log("Error connecting to database.");
 
-  
-// Define a User representation for clarity
-const User = {
-    tableName: 'users', 
-    createUser: function(newUser, callback) {
-        connection.query('INSERT INTO ' + this.tableName + ' SET ?', newUser, callback);
-    },  
-    getUserByEmail: function(email, callback) {
-        connection.query('SELECT * FROM ' + this.tableName + ' WHERE email = ?', email, callback);
-    },
-    getUserByUsername: function(username, callback) {
-        connection.query('SELECT * FROM ' + this.tableName + ' WHERE username = ?', username, callback);
-    }
-};
+     console.log("Connected to MySQL as id:", db.threadId);
+})
 
-// Registration route
-app.post('/register', [
-    // Validate email and username fields
-    check('email').isEmail(),
-    check('username').isAlphanumeric().withMessage('Username must be alphanumeric'),
+//users registration route
+app.post('/api/register', async (req, res) => {
+     try {
+          const users = `SELECT * FROM users WHERE email = ?`
+          //check if user exists
+          db.query(users, [req.body.email], (err, data) => {
+               if (data.length) return res.status(409).json("User already exists");
 
-    // Custom validation to check if email and username are unique
-    check('email').custom(async (value) => {
-        const user = await User.getUserByEmail(value);
-        if (user) {
-            throw new Error('Email already exists');
-        }
-    }),
-    check('username').custom(async (value) => {
-        const user = await User.getUserByUsername(value);
-        if (user) {
-            throw new Error('Username already exists');
-        }
-    }),
-], async (req, res) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+               //Password Hashing
+               const salt = bcrypt.genSaltSync(10)
+               const hashedPassword = bcrypt.hashSync(req.body.password, salt)
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+               const newUser = `INSERT INTO users(email, username, password) VALUES(?)`
+               value = [
+                    req.body.email,
+                    req.body.username,
+                    hashedPassword
+               ]
+               
+               db.query(newUser, [value], (err, data) => {
+                    if (err) return res.status(400).json("Something went wrong")
+                    
+                    return res.status(200).json("User created successfully")
+               });
+          })
+     }
+     catch (err) {
+          res.status(500).json("Internal Server Error")
+     }
+})
 
-    // Create a new user object
-    const newUser = {
-        email: req.body.email,
-        username: req.body.username,
-        password: hashedPassword,
-        full_name: req.body.full_name
-    };
+//user login route
+app.post('/api/login', async (req, res) => {
+     try {
+          const users = `SELECT * FROM users WHERE email = ?`
+          db.query(users, [req.body.email], (err, data) => { 
+               if (data.length === 0) return res.status(404).json("User not found");
 
-    // Insert user into MySQL
-    User.createUser(newUser, (error, results, fields) => {
-        if (error) {
-          console.error('Error inserting user: ' + error.message);
-          return res.status(500).json({ error: error.message });
-        }
-        console.log('Inserted a new user with id ' + results.insertId);
-        res.status(201).json(newUser);
-      });
-});
+               const isPasswordvalid = bcrypt.compareSync(req.body.password, data[0].password);
 
-// Login route
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    // Retrieve user from database
-    connection.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
-        if (err) throw err;
-        if (results.length === 0) {
-            res.status(401).send('Invalid username or password');
-        } else {
-            const user = results[0];
-            // Compare passwords
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-                if (err) throw err;
-                if (isMatch) {
-                    // Store user in session
-                    req.session.user = user;
-                    res.send('Login successful');
-                } else {
-                    res.status(401).send('Invalid username or password');
-                }
-            });
-        }
-    });
-});
+               if (!isPasswordvalid) return res.status(400).json("Invalid email or password");
 
-//Dashboard route
-app.get('/dashboard', (req, res) => {
-    // Assuming you have middleware to handle user authentication and store user information in req.user
-    const userFullName = req.user.full_name;
-    res.render('dashboard', { fullName: userFullName });
-});
+               // return res.status(200).json("Login Successful");
+               return res.sendFile(path.join(__dirname, + '/index.html'));
+          })
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+     }
+     catch (err) {
+          res.status(500).json("Internal Server error");
+     }
+})
+
+app.listen(5000, () => {
+     console.log("Server is running on port 5000")
+})
